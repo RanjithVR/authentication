@@ -1,0 +1,10 @@
+package com.sample.demo.models.repository;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import com.sample.demo.model.Attachment;
+
+public interface AttachemntRepository extends MongoRepository<Attachment, String> {
+
+	
+}

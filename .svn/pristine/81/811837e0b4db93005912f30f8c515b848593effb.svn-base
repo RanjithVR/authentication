@@ -1,0 +1,631 @@
+var receiverId;
+var senderImage;
+
+var isReciverExists = false;
+
+var messageContextPath = location.protocol + '//' + location.host
+		+ location.pathname;
+
+var groupId;
+
+var isGroupMessge = false;
+var isIndMessage = false;
+
+$(document).ready(function() {
+
+	// establish websocket connection
+	connect();
+
+	$("#userNameProfile").html(userFullName)
+	// $('.card').hide();
+	$("#messageContentDiv").hide();
+
+	
+
+});
+
+function getMessageWindow(name, pId, receiverUk, reciverId, image) {
+
+	isReciverExists = true;
+
+	$("#messageContentDiv").show();
+	$('#chat-wrapper').empty();
+
+	isGroupMessge = false;
+	isIndMessage = true;
+
+	$("#" + receiverUk).hide();
+	senderImage = image;
+
+	receiverId = receiverUk;
+	var message = "hey  " + name + "  welcome to Chat";
+
+	// $('#currentChatHead').src="../resources/assets/img/profiles/0"+senderImage+".jpg";
+
+	$("#currentChatHead").attr("src",
+			"../resources/assets/img/profiles/0" + senderImage + ".jpg");
+	$(".name").text(name);
+
+	$
+			.ajax({
+				method : 'GET',
+				url : urlMessageAll + "/" + reciverId,
+				success : function(data) {
+					// console.log(data);
+					var imageUrl = "../resources/assets/img/profiles/0"
+							+ senderImage + ".jpg";
+
+					if (data != "") {
+						$.each(data,function(index, messageObjList) {
+							console.log("=========================");
+											console.log(index);
+								
+							
+											var dateDiv='<div class="chat-row" style="text-align: center;" ><p>'+index+'</p></div>';
+											$('#chat-wrapper').prepend(dateDiv);
+											
+							$.each(messageObjList,function(index, messageObj) {
+
+								
+								console.log(messageObj["messageContent"]);
+											var senderId = messageObj["senderId"];
+												
+												var mesageHrMinuts= messageObj["timeOfMessage"].split(":");
+												var timeOfMessage=formatAMPM(mesageHrMinuts[0],mesageHrMinuts[1]);
+												
+												
+											if (userId == senderId) {
+
+												if (messageObj.attachment) {
+
+													var attachmentId = messageObj.attachemnt;
+
+													var imgurls = urlAttachemnt
+															+ "/"
+															+ attachmentId;
+
+													if (messageObj.attachmetExt == "image/jpeg") {
+														var messageDiv = '<div class="chat-row" id='
+																+ messageObj["id"]
+																+ ' ><img src='
+																+ imageUrl
+																+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div class="divImage">'
+																+ '<img onClick="downloadFile(\''
+																+ attachmentId
+																+ '\')"src="'
+																+ imgurls
+																+ '"></div><div class="message"><p>'
+																+ messageObj["messageContent"]
+																+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+														$('#chat-wrapper')
+																.append(
+																		messageDiv);
+													} else if (messageObj.attachmetExt == "application/pdf") {
+
+														var messageDiv = '<div class="chat-row" id='
+																+ messageObj["id"]
+																+ ' ><img src='
+																+ imageUrl
+																+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div class="divImage">'
+																+ '<a href="#" onClick="getPdf(\''
+																+ attachmentId
+																+ '\')"><img src="../resources/assets/static-image/download.jpg"></a></div><div class="message"><p>'
+																+ messageObj["messageContent"]
+																+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+														$('#chat-wrapper')
+																.append(
+																		messageDiv);
+
+													}
+
+												} else {
+													var message = '<div class="chat-row" id='
+															+ messageObj["id"]
+															+ '><img src='
+															+ imageUrl
+															+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div class="message"><p>'
+															+ messageObj["messageContent"]
+															+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+													$('#chat-wrapper').append(
+															message);
+												}
+
+												/*
+												 * $('#chat-wrapper').animate({
+												 * scrollTop :
+												 * $('#chat-wrapper').prop("scrollHeight") },
+												 * 50);
+												 */
+											} else {
+
+												if (messageObj.attachment) { // if attachemnt is exist
+													var attachmentId = messageObj.attachemnt;
+
+													var imgurls = urlAttachemnt
+															+ "/"
+															+ attachmentId;
+
+													var messageDiv = '<div class="chat-row response" id='
+															+ messageObj["id"]
+															+ ' ><img src='
+															+ imageUrl
+															+ ' alt=""class="img-circle img-sm pull-left"><div class="bubble_response"><div class="divImage">'
+															+ '<img src="'
+															+ imgurls
+															+ '"></div><div class="message"><p>'
+															+ messageObj["messageContent"]
+															+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+													$('#chat-wrapper').append(
+															messageDiv);
+
+												} else {
+													// if olny text message
+
+													var messageDiv = '<div class="chat-row response" id='
+															+ messageObj["id"]
+															+ ' ><img src='
+															+ imageUrl
+															+ ' alt=""class="img-circle img-sm pull-left"><div class="bubble_response"><div class="message"><p>'
+															+ messageObj["messageContent"]
+															+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+													$('#chat-wrapper').append(
+															messageDiv);
+
+												}
+
+											}
+											
+						                      });
+							
+						/*	var dateDiv='<div class="chat-row" style="text-align: center;" ><p>'+index+'</p></div>';
+							$('#chat-wrapper').prepend(dateDiv);*/
+							
+							
+							
+										});
+					} else {
+						var messageDiv = '<div class="chat-row response"><div class="bubble_response"><div class="message"><p>'
+								+ message
+								+ '</p></div><div class="date"></div></div></div>';
+
+						$('#chat-wrapper').append(messageDiv);
+
+						/*$('#chat-wrapper').animate({
+							scrollTop : $('#chat-wrapper').prop("scrollHeight")
+						}, 50);*/
+
+					}
+
+				},
+				error : function(xhr, error) {
+					console.log(xhr, error);
+				}
+
+			});
+
+	// $('.card').show();
+}
+
+function formatAMPM(hours,minutes) {
+
+	  var ampm = hours >= 12 ? 'pm' : 'am';
+	  hours = hours % 12;
+	  hours = hours ? hours : 12; // the hour '0' should be '12'
+	  minutes = minutes < 10 ? '0'+minutes : minutes;
+	  var strTime = hours + ':' + minutes + ' ' + ampm;
+	  return strTime;
+	}
+
+function getPdf(attachementId) {
+	//console.log(attachementId);
+	//window.location.href = urlAttachemnt + "/getpdf/" + attachementId;
+}
+
+function downloadFile(attachementId) {
+	//console.log(attachementId);
+	//window.location.href = urlAttachemnt + "/download/" + attachementId;
+}
+
+function sendMessage() {
+
+	// if any receiver or group is selected.
+	if (isReciverExists) {
+		if ($('.textarea-control').text() != "") {
+
+			if (isIndMessage) {
+
+				// ind message sending
+				var message = {};
+				message.message = $('.textarea-control').text();
+				message.receiveUserId = receiverId;
+				message.type = "1";
+
+				var messageContextPath = location.protocol + '//'
+						+ location.host + location.pathname;
+				$.ajax({
+					method : 'POST',
+					url : messageContextPath,
+					contentType : "application/json; charset=utf-8",
+					data : JSON.stringify(message),
+					cache : false,
+					contentType : false,
+					processData : false,
+					success : function(data) {
+						console.log(data);
+
+						createmessageview(data, message.receiveUserId, 1);
+						$('.textarea-control').text("");
+						// $("#message-" + id).val('');
+					},
+					error : function(xhr, error) {
+						console.log(xhr, error);
+					}
+
+				});
+			} else {
+				// group message sending
+
+				var message = {};
+
+				message.message = $('.textarea-control').val();
+				message.receiveUserId = receiverId;
+				message.senderId = userId;
+
+				message.groupId = groupId;
+				message.senderName = userFullName;
+
+				var messageContextPath = location.protocol + '//'
+						+ location.host + location.pathname + '/sample';
+
+				$.ajax({
+					method : 'POST',
+					url : messageContextPath,
+					contentType : "application/json; charset=utf-8",
+					data : JSON.stringify(message),
+					success : function(data) {
+
+						createmessageviewGrp(data, message.receiveUserId, 1);
+						$('.textarea-control').text("");
+					},
+					error : function(xhr, error) {
+						console.log(xhr, error);
+					}
+
+				});
+
+			}
+
+		}
+	}
+
+}
+
+function sendPic() {
+
+	var image = $('#file-input-data')[0].files[0];
+	var text = $('.textarea-control').text().trim();
+
+	if (image != undefined || text != "") {
+
+		if (isIndMessage) {
+			var message = {};
+			message.message = $('.textarea-control').text();
+			message.receiveUserId = receiverId;
+			message.type = "1";
+
+			var uploadAttachment = new FormData();
+			uploadAttachment.append("file", image);
+			uploadAttachment.append('threadPid', JSON.stringify(message));
+			// uploadAttachment.append('receiverId',receiverId)
+			
+			var messageContextPath = location.protocol + '//'
+			+ location.host + location.pathname + '/upload-attachment';
+
+			$.ajax({
+				type : 'POST',
+				url : messageContextPath,
+				data : uploadAttachment,
+				cache : false,
+				contentType : false,
+				processData : false,
+				success : function(data) {
+					// cosole.log("ggggggggggggggg");
+
+					console.log(data);
+
+					createmessageview(data, message.receiveUserId, 1);
+					$('.textarea-control').text("");
+
+					$('#file-input-data').val('');
+				},
+				error : function(xhr, error) {
+					console.log(xhr, error);
+				}
+			});
+		}else{
+
+			// group message sending
+
+			var message = {};
+
+			message.message = $('.textarea-control').val();
+			message.receiveUserId = receiverId;
+			message.senderId = userId;
+
+			message.groupId = groupId;
+			message.senderName = userFullName;
+
+			var messageContextPath = location.protocol + '//'
+					+ location.host + location.pathname + '/sample';
+
+			$.ajax({
+				method : 'POST',
+				url : messageContextPath,
+				contentType : "application/json; charset=utf-8",
+				data : JSON.stringify(message),
+				success : function(data) {
+						console.log("Saved Grp Reposnse"+data)
+					createmessageviewGrp(data, message.receiveUserId, 1);
+					$('.textarea-control').text("");
+				},
+				error : function(xhr, error) {
+					console.log(xhr, error);
+				}
+
+			});
+
+		
+			
+		}
+		
+	
+	}
+
+}
+function logout() {
+
+	console.log(messageContextPath);
+	window.location.href = '/login';
+
+}
+
+function getMessageWindowGroup(name, groupUKId, gId) {
+	isReciverExists = true;
+	
+	$("#file-input-data").hide();
+
+	$("#messageContentDiv").show();
+	$('#chat-wrapper').empty();
+
+	isGroupMessge = true;
+	isIndMessage = false;
+
+	groupId = gId;
+
+	receiverId = groupUKId;
+
+	var message = "hey  " + name + "  welcome to Chat";
+
+	// $('#currentChatHead').src="../resources/assets/img/profiles/0"+senderImage+".jpg";
+	$("#currentChatHead").attr("src",
+			"../resources/assets/img/profiles/group.jpg");
+
+	$(".name").text(name);
+
+	$.ajax({
+				method : 'GET',
+				url : urlMessageGroupAll + "/" + groupId,
+				success : function(data) {
+					console.log(data);
+					var imageUrl = "../resources/assets/img/profiles/group.jpg";
+
+					if (data != "") {
+						$.each(data,function(index, messageObj1) {
+							
+											console.log(messageObj1);
+
+											$.each(messageObj1,function(index, messageObj) {		
+											
+											var senderId = messageObj["senderId"];
+											
+											var mesageHrMinuts= messageObj["timeOfMessage"].split(":");
+											var timeOfMessage=formatAMPM(mesageHrMinuts[0],mesageHrMinuts[1]);
+
+											if (userId == senderId) {
+												var message = '<div class="chat-row" id='
+														+ messageObj["id"]
+														+ '><img src='
+														+ imageUrl
+														+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div class="message"><p>'
+														+ messageObj["messageContent"]
+														+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+												$('#chat-wrapper').append(
+														message);
+											} else {
+
+												var messageDiv = '<div class="chat-row response" id='
+														+ messageObj["id"]
+														+ '><img src='
+														+ imageUrl
+														+ ' alt=""class="img-circle img-sm pull-left"><div class="bubble_response"><div class="message"> <b>'
+														+ messageObj["senderName"]
+														+ '</b><p>'
+														+ messageObj["messageContent"]
+														+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+												$('#chat-wrapper').append(
+														messageDiv);
+											}
+											
+											
+
+						});
+											
+
+										});
+					}
+
+				},
+				error : function(xhr, error) {
+					console.log(xhr, error);
+				}
+
+			});
+
+}
+
+function createmessageview(message, id, align) {
+	var imageUrl = "../resources/assets/img/profiles/0" + senderImage + ".jpg";
+
+	
+	
+	
+	
+	if (align == 2) {// response chat upending
+		var mesageHrMinuts= message["timeOfMessage"].split(":");
+		var timeOfMessage=formatAMPM(mesageHrMinuts[0],mesageHrMinuts[1]);
+		
+		
+		if (message.attachment) { // if attachemnt is exist
+			var attachmentId = message.attachemnt;
+
+			var imgurl = urlAttachemnt + "/" + attachmentId;
+
+			var messageDiv = '<div class="chat-row response" style="width: 30%;"><img src='
+					+ imageUrl
+					+ ' alt=""class="img-circle img-sm pull-left"><div class="bubble_response"><div  class="divImage">'
+					+ '<img src="'
+					+ imgurl
+					+ '"></div><div class="message"><p>'
+					+ message.messageContent
+					+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+			$('#chat-wrapper').append(messageDiv);
+
+		} else {
+			// if olny text message
+
+			var messageDiv = '<div class="chat-row response"><img src='
+					+ imageUrl
+					+ ' alt=""class="img-circle img-sm pull-left"><div class="bubble_response"><div class="message"><p>'
+					+ message.messageContent
+					+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+			$('#chat-wrapper').append(messageDiv);
+
+		}
+
+	} else {
+		var message=message[0];
+		var mesageHrMinuts= message["timeOfMessage"].split(":");
+		var timeOfMessage=formatAMPM(mesageHrMinuts[0],mesageHrMinuts[1]);
+
+		if (message.attachment) {
+
+			var attachmentId = message.attachemnt;
+
+			var imgurl = urlAttachemnt + "/" + attachmentId;
+
+			var messageDiv = '<div class="chat-row" style="width: 30%;"><img src='
+					+ imageUrl
+					+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div  class="divImage">'
+					+ '<img src="'
+					+ imgurl
+					+ '"></div><div class="message"><p>'
+					+ message.messageContent
+					+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+			$('#chat-wrapper').append(messageDiv);
+
+		} else {
+
+			var message = '<div class="chat-row"><img src='
+					+ imageUrl
+					+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div class="message"><p>'
+					+ message["messageContent"]
+					+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+			$('#chat-wrapper').append(message);
+
+		}
+
+	}
+
+}
+
+function createmessageviewGrp(message, id, align) {
+	var imageUrl = "../resources/assets/img/profiles/group.jpg";
+
+	
+	if (align == 2) {
+	
+		var mesageHrMinuts= message["timeOfMessage"].split(":");
+		var timeOfMessage=formatAMPM(mesageHrMinuts[0],mesageHrMinuts[1]);
+		
+		var messageDiv = '<div class="chat-row response"><img src='
+				+ imageUrl
+				+ ' alt=""class="img-circle img-sm pull-left"><div class="bubble_response"><div class="message"><b>'
+				+ message.senderName + '</b><p>' + message.messageContent
+				+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+		$('#chat-wrapper').append(messageDiv);
+	} else {
+		
+		var message=message[0];
+		var mesageHrMinuts= message["timeOfMessage"].split(":");
+		var timeOfMessage=formatAMPM(mesageHrMinuts[0],mesageHrMinuts[1]);
+
+		var message = '<div class="chat-row"><img src='
+				+ imageUrl
+				+ ' alt=""class="img-circle img-sm pull-right"><div class="bubble"><div class="message"><p>'
+				+ message.messageContent
+				+ '</p></div><div class="date">'+timeOfMessage+'</div></div></div>';
+		$('#chat-wrapper').append(message);
+	}
+
+}
+
+var stompClient = null;
+function connect() {
+
+	if (stompClient != null) {
+		stompClient.disconnect();
+	}
+	var socket = new SockJS(contextPath + '/tracking');
+	stompClient = Stomp.over(socket);
+	stompClient.connect({}, function(frame) {
+		stompClient.subscribe('/message/send/individual/' + loginUserUk,
+				function(response) {
+					var messageBody1 = JSON.parse(response.body);
+					messageBody1.currentUser = false;
+					
+					 var messageBody=messageBody1[0];
+					if (receiverId == messageBody.senderUserUkId) {
+						createmessageview(messageBody,
+								messageBody.senderUserUkId, 2);
+						$("#" + messageBody.senderUserUkId).hide();
+
+					} else {
+						$("#" + messageBody.senderUserUkId).show();
+					}
+
+					/*
+					 * if (receiverId == messageBody.senderUserId) {
+					 * createmessageview(messageBody, messageBody.senderUserId,
+					 * 2); $("#" + messageBody.senderUserId).hide(); } else {
+					 * $("#" + messageBody.senderUserId).show(); }
+					 */
+
+					// receiverId
+				});
+
+		stompClient.subscribe('/message/send/group/' + loginUserUkGrp,
+				function(response) {
+					var messageBody1 = JSON.parse(response.body);
+					messageBody1.currentUser = false;
+
+					 var messageBody=messageBody1[0];
+					if (userId != messageBody.senderId) {
+						console.log("Grp message  recived");
+
+						createmessageviewGrp(messageBody,
+								messageBody.receiveUserId, 2);
+					}
+
+				});
+	});
+}

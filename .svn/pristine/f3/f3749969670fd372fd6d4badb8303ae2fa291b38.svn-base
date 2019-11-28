@@ -1,0 +1,118 @@
+package com.sample.demo.web.rest;
+
+import java.net.URISyntaxException;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
+import javax.inject.Inject;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.sample.demo.model.UserManagement;
+import com.sample.demo.models.repository.RoleRepository;
+import com.sample.demo.models.repository.UserRepository;
+import com.sample.demo.non_model.Message;
+import com.sample.demo.non_model.Register;
+import com.sample.demo.non_model.Status;
+
+/**
+ * Web controller for managing Login.
+ * 
+ * @version 1.0
+ */
+@Controller
+public class LoginResource {
+
+	@Inject
+	private UserRepository userRepository;
+
+	@Inject
+	private RoleRepository roleRepository;
+
+	@Inject
+	private PasswordEncoder passwordEncoder;
+	
+	@RequestMapping(value = { "/", "/login" }, method = RequestMethod.GET)
+	public String login() {
+		return "login";
+	}
+	
+	@RequestMapping(value = {"/register" }, method = RequestMethod.GET)
+	public String register() {
+		return "register";
+	}
+	
+	@PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Status> register(@RequestBody Register messageDTO) throws URISyntaxException {
+		
+		String firstName= messageDTO.getFirstName();
+		
+		System.out.println(firstName);
+		System.out.println(messageDTO.getPassword());
+		System.out.println(messageDTO.getUserName());
+		
+		Optional<UserManagement> userExist=userRepository.findByUserNameIgnoreCase(messageDTO.getUserName());
+		Status status= new Status();
+		status.setMessage("found");
+		if (!userExist.isPresent()) {
+			UserManagement user = new UserManagement();
+			user.setCompany("company");
+
+			user.setEmail(null);
+			user.setActivated(true);
+			user.setFullName( messageDTO.getFirstName());
+			user.setMobile(null);
+			// encoading password
+			user.setPassword(passwordEncoder.encode(messageDTO.getPassword()));
+			
+	     
+	     Random rand = new Random();
+
+	     int  n = rand.nextInt(500000) + 1;
+	     long number=n;
+			/*  long ukId=rand_int1;*/
+			user.setUkMessageKey(number);
+			
+			user.setPid("abbcd"+messageDTO.getFirstName());
+			user.setRole(roleRepository.findOneByRoleName("USER").get());
+			user.setUserName(messageDTO.getUserName());
+
+			userRepository.save(user);
+			status.setMessage("saved");
+			
+		}
+		
+		
+		return new ResponseEntity<>(status, HttpStatus.OK);
+		
+	}
+	
+
+	@RequestMapping(value = "/welcome", method = RequestMethod.GET)
+	public ModelAndView welcome() {
+		ModelAndView model = new ModelAndView();
+		model.setViewName("welcome");
+		return model;
+	}
+
+	@RequestMapping(value = "/aaa", method = RequestMethod.GET)
+	public ModelAndView aaa() {
+		ModelAndView model = new ModelAndView();
+		model.setViewName("redirect:swagger-ui.html");
+		return model;
+	}
+	
+	
+	
+
+}

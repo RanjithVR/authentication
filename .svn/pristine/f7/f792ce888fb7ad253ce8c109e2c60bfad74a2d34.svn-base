@@ -1,0 +1,429 @@
+package com.sample.demo.web.rest;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import com.google.common.io.Files;
+import com.google.gson.Gson;
+import com.sample.demo.model.Attachment;
+import com.sample.demo.model.Group;
+import com.sample.demo.model.GroupMessage;
+import com.sample.demo.model.IndividualChatMessage;
+import com.sample.demo.model.UserManagement;
+import com.sample.demo.models.repository.AttachemntRepository;
+import com.sample.demo.models.repository.GroupMessageRepository;
+import com.sample.demo.models.repository.GroupRepository;
+import com.sample.demo.models.repository.IndividualChatMessageRepository;
+import com.sample.demo.models.repository.UserRepository;
+import com.sample.demo.non_model.Message;
+import com.sample.demo.security.uti.SecurityUtils;
+import com.sample.demo.web.rest.dto.GroupMessageDTO;
+import com.sample.demo.web.rest.dto.IndividualChatDTO;
+
+@Controller
+@RequestMapping("/company")
+public class MessageResource {
+
+	private final Logger log=LoggerFactory.getLogger(this.getClass());
+	
+	@Value("${server.upload.path}")
+	private String fileSaveDirectory;
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Autowired
+	IndividualChatMessageRepository chatMessageRepository;
+
+	@Autowired
+	GroupRepository groupRepository;
+
+	@Autowired
+	private SimpMessagingTemplate simpMessagingTemplate;
+
+	@Autowired
+	GroupMessageRepository groupMessageRepository;
+
+	@Autowired
+	private AttachemntRepository attachemntRepository;
+
+	@GetMapping(value = "/message")
+	public String getMessage(Model model) {
+		return "message";
+	}
+
+	@GetMapping(value = "/chatHome")
+	public String getChatScreen(Model model) {
+		List<UserManagement> allusers = userRepository.findAll();
+		List<Group> allGroup = groupRepository.findAll();
+		String userName = SecurityUtils.getCurrentUserLogin();
+
+		Optional<UserManagement> opuser = userRepository.findByUserNameIgnoreCase(userName);
+		if (opuser.isPresent()) {
+			allusers.remove(opuser.get());
+		}
+
+		model.addAttribute("group", allGroup);
+		model.addAttribute("users", allusers);
+		model.addAttribute("userId", opuser.get().getId());
+		model.addAttribute("receverId", opuser.get().getUkMessageKey());
+		model.addAttribute("userFullName", opuser.get().getFullName());
+
+		return "chatHome";
+	}
+
+	@PostMapping(value = "/chatHome", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Message> createMessage(@RequestBody Message messageDTO, MultipartHttpServletRequest request)
+			throws URISyntaxException {
+
+		Optional<UserManagement> senderUser = userRepository
+				.findByUserNameIgnoreCase(SecurityUtils.getCurrentUserLogin());
+
+		// save message
+		Optional<UserManagement> opuser = userRepository.findByUkMessageKey(messageDTO.getReceiveUserId());
+
+		// messageDTO.setSenderUserId(senderUser.get().getId());
+
+		IndividualChatMessage message = new IndividualChatMessage();
+
+		if (opuser.isPresent()) {
+			// pushing using websocket
+
+			messageDTO.setSenderUserId(senderUser.get().getUkMessageKey());
+			simpMessagingTemplate.convertAndSend("/message/send/individual/" + opuser.get().getUkMessageKey(),
+					messageDTO);
+			message.setMessageContent(messageDTO.getMessage());
+			message.setReceiverId(opuser.get().getId());
+			message.setSenderId(senderUser.get().getId());
+			message.setRead(true);
+			Date date = new Date();
+			//message.setCreatedDate(date.toLocaleString());
+			chatMessageRepository.save(message);
+
+		}
+		return new ResponseEntity<>(messageDTO, HttpStatus.OK);
+
+	}
+
+	@PostMapping(value = "/chatHome/sample", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<GroupMessageDTO>> cSample(@RequestBody Message messageDTO) throws URISyntaxException {
+
+		// System.out.println("Methodd ++++++++++++++++++++ "+
+		// messageDTO.getReceiveUserId());
+
+		List<GroupMessage> messageList= new ArrayList<GroupMessage>();
+		List<GroupMessageDTO> result=new ArrayList<GroupMessageDTO>();
+		
+		
+		Optional<UserManagement> senderUser = userRepository
+				.findByUserNameIgnoreCase(SecurityUtils.getCurrentUserLogin());
+		messageDTO.setSenderName(senderUser.get().getFullName());
+
+		GroupMessage grpMessage = new GroupMessage();
+
+		grpMessage.setIsDelete(false);
+		grpMessage.setGroupId(messageDTO.getGroupId());
+		grpMessage.setMessageContent(messageDTO.getMessage());
+		grpMessage.setIsRead(true);
+		grpMessage.setSenderId(messageDTO.getSenderId());
+		grpMessage.setSenderName(messageDTO.getSenderName());
+		 LocalDateTime now = LocalDateTime.now();  
+		grpMessage.setCreatedDate(now);
+
+		groupMessageRepository.save(grpMessage);
+		
+		messageList.add(grpMessage);
+		result=messageList.stream().map(GroupMessageDTO::new).collect(Collectors.toList());
+		
+
+		//simpMessagingTemplate.convertAndSend("/message/send/group/" + messageDTO.getReceiveUserId(), messageDTO);
+		simpMessagingTemplate.convertAndSend("/message/send/group/" + messageDTO.getReceiveUserId(), result);
+
+
+		return new ResponseEntity<>(result, HttpStatus.OK);
+
+	}
+
+	@SuppressWarnings("null")
+	@PostMapping(value = "/chatHome/upload-attachment", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<IndividualChatDTO>> uploadEditFile(MultipartHttpServletRequest request) {
+		String threadPid = request.getParameterValues("threadPid")[0];
+
+		// Message messageDTO=threadPid;
+
+		Gson gson = new Gson();
+		Message message = gson.fromJson(threadPid, Message.class);
+
+		Optional<UserManagement> senderUser = userRepository
+				.findByUserNameIgnoreCase(SecurityUtils.getCurrentUserLogin());
+
+		Optional<UserManagement> opuser = userRepository.findByUkMessageKey(message.getReceiveUserId());
+		IndividualChatMessage messageObj = new IndividualChatMessage();
+		List<IndividualChatMessage> messageList= new ArrayList<IndividualChatMessage>();
+		List<IndividualChatDTO> result=new ArrayList<IndividualChatDTO>();
+		
+		MultipartFile file = request.getFile("file");
+
+		if (file == null ) {//&& file.isEmpty()
+			//return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		} else {
+
+			try {
+
+				Random rnd = new Random();
+				int randmNumber = 100000 + rnd.nextInt(900000);
+
+				String fileLocation = getFileSaveDirectory("attachmets") + "/" + randmNumber
+						+ file.getOriginalFilename();
+
+				writeToDisk(file.getBytes(), fileLocation, "attachmets");
+
+				Attachment attachmentObj = new Attachment();
+
+				attachmentObj.setLocation(fileLocation);
+				attachmentObj.setActivated(true);
+				attachmentObj.setAttachmentName(file.getOriginalFilename());
+				attachmentObj.setExtension(file.getContentType());
+
+				attachmentObj.setUploadedDate(LocalDateTime.now());
+
+				attachmentObj = attachemntRepository.save(attachmentObj);
+
+				messageObj.setAttachemnt(attachmentObj);
+				messageObj.setIsAttachment(true);
+
+			} catch (IOException ex) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+
+		}
+
+		if (opuser.isPresent()) {
+
+			messageObj.setSenderId(senderUser.get().getId());
+
+			messageObj.setMessageContent(message.getMessage());
+			messageObj.setReceiverId(opuser.get().getId());
+			messageObj.setSenderId(senderUser.get().getId());
+			messageObj.setRead(true);
+			
+			  LocalDateTime now = LocalDateTime.now();  
+		
+			messageObj.setCreatedDate(now);
+			
+	      
+			messageObj = chatMessageRepository.save(messageObj);
+
+			messageObj.setSenderUserUkId(senderUser.get().getUkMessageKey());
+			messageList.add(messageObj);
+			result=messageList.stream().map(IndividualChatDTO::new).collect(Collectors.toList());
+			
+		/*	simpMessagingTemplate.convertAndSend("/message/send/individual/" + opuser.get().getUkMessageKey(),
+					messageObj);*/
+			
+			simpMessagingTemplate.convertAndSend("/message/send/individual/" + opuser.get().getUkMessageKey(),
+					result);
+			
+		
+
+		}
+
+	
+		
+		return new ResponseEntity<>(result, HttpStatus.OK);
+	}
+
+	private void writeToDisk(byte[] fileBytes, String fileLocation, String folderName) {
+		try {
+			File fileDir = new File(getFileSaveDirectory(folderName));
+			if (!fileDir.exists()) {
+				fileDir.mkdirs();
+			}
+			FileCopyUtils.copy(fileBytes, new File(fileLocation));
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+	}
+
+	private String getFileSaveDirectory(String folderName) {
+		// return FILE_SAVE_DIRECTORY +
+		// SecurityUtils.getCurrentUsersCompanyId();
+		return fileSaveDirectory + folderName;
+	}
+
+	@GetMapping(value = "/getMessageAll/{receiverId}")
+	public ResponseEntity<Map<LocalDate, List<IndividualChatDTO>>> getMessage(@PathVariable String receiverId)
+			throws URISyntaxException {
+
+		Optional<UserManagement> senderUser = userRepository
+				.findByUserNameIgnoreCase(SecurityUtils.getCurrentUserLogin());
+
+		Optional<UserManagement> opuser = userRepository.findOneByid(receiverId);
+		if (opuser.isPresent()) {
+
+			List<IndividualChatMessage> messageList = chatMessageRepository.findAllByReceiverIdAndSenderId(receiverId,
+					senderUser.get().getId());
+			
+			List<IndividualChatDTO> result=messageList.stream().map(IndividualChatDTO::new).collect(Collectors.toList());
+			
+			
+			
+			 Map<LocalDate, List<IndividualChatDTO>> mapValues = result.parallelStream().collect(Collectors.groupingBy(pl -> pl.getDate()));
+			
+		//	 Map<LocalDate, List<IndividualChatDTO>> inv = invert(mapValues);
+			
+			
+			// messageList.addAll(chatMessageRepository.findAllByReceiverIdAndSenderId(receiverId,
+			// senderUser.get().getId()));
+
+			// messageList.stream().filter(mess->mess.getCreatedDate())
+
+			//List<IndividualChatMessage> reverseView = Lists.reverse(messageList);
+
+			return new ResponseEntity<>(mapValues, HttpStatus.OK);
+		}
+
+		return null;
+
+	}
+
+	@GetMapping(value = "/getGroupMessageAll/{groupId}")
+	public ResponseEntity<Map<LocalDate, List<GroupMessageDTO>>> getAllGroupMessageByGrpId(@PathVariable String groupId)
+			throws URISyntaxException {
+
+		Optional<Group> group = groupRepository.findById(groupId);
+
+		if (group.isPresent()) {
+
+			List<GroupMessage> groupMessageList = groupMessageRepository.findAllBygroupId(groupId);
+			
+			List<GroupMessageDTO> result=groupMessageList.stream().map(GroupMessageDTO::new).collect(Collectors.toList());
+
+			 Map<LocalDate, List<GroupMessageDTO>> mapValues = result.parallelStream().collect(Collectors.groupingBy(pl -> pl.getDate()));
+				
+				
+			 
+			return new ResponseEntity<>(mapValues, HttpStatus.OK);
+		}
+
+		return null;
+
+	}
+
+	@GetMapping(value = "/attachments/{pid}")
+	public ResponseEntity<byte[]> getAttachment(@PathVariable String pid) {
+		// log.debug("rest web request to get a Coatingtype by pid {}", pid);
+		Optional<Attachment> attch = attachemntRepository.findById(pid);
+		if (attch.isPresent()) {
+			File physicalFile = getPhysicalFileByFile(attch.get().getLocation());
+			if (physicalFile.exists()) {
+				try {
+					return new ResponseEntity<>(Files.toByteArray(physicalFile), HttpStatus.OK);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		byte[] newByte= new byte[0];
+		
+		return new ResponseEntity<>(newByte, HttpStatus.NO_CONTENT);
+	}
+
+	public File getPhysicalFileByFile(String path) {
+		File physicalFile = new File(path);
+		return physicalFile;
+	}
+	
+	
+	
+	
+	
+	@GetMapping(value = "/attachments/getpdf/{attachmentPid}")
+	public ResponseEntity<byte[]> getPDF(@PathVariable String attachmentPid) throws IOException {
+		//log.debug("Request to upload a file : {}", attachmentPid);
+		//Optional<Attachment> opAttachment = attachmentService.findOneByPidAndActivated(attachmentPid, true);
+		Optional<Attachment> opAttachment = attachemntRepository.findById(attachmentPid);
+		if(opAttachment.isPresent()){
+			
+		
+		File physicalFile = getPhysicalFileByFile(opAttachment.get().getLocation());
+		if (physicalFile.exists()) {
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.parseMediaType("application/pdf"));
+			// String filename = "output.pdf";
+			// headers.setContentDispositionFormData(filename, filename);
+			headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+			ResponseEntity<byte[]> response = new ResponseEntity<byte[]>(Files.toByteArray(physicalFile), headers,
+					HttpStatus.OK);
+			return response;
+		}
+		}
+		return null;
+	}
+
+	
+	@GetMapping("/attachments/download/{attachmentPid}")
+	public StreamingResponseBody getSteamingFile(HttpServletResponse response, @PathVariable String attachmentPid)
+			throws IOException {
+		log.debug("Request to download a file : {}", attachmentPid);
+		Optional<Attachment> opAttachment = attachemntRepository.findById(attachmentPid);
+		if(opAttachment.isPresent()){
+			
+		
+		File physicalFile = getPhysicalFileByFile(opAttachment.get().getLocation());
+		if (physicalFile.exists()) {
+			response.setContentType(opAttachment.get().getMimeType());
+			response.addHeader("Content-Disposition", "attachment; filename=" + opAttachment.get().getAttachmentName());
+
+			response.setContentLength((int) physicalFile.length());
+			InputStream inputStream = new FileInputStream(physicalFile);
+			return outputStream -> {
+				int nRead;
+				byte[] data = new byte[1024];
+				while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+					outputStream.write(data, 0, nRead);
+				}
+				inputStream.close();
+			};
+		}
+		}
+		return null;
+	}
+	
+}

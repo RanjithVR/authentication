@@ -1,0 +1,23 @@
+#divPreloader {
+background: #000000;
+opacity: 0.6;
+filter: alpha(opacity = 90);
+position: fixed;
+top: 0px;
+left: 0px;
+min-width: 100%;
+min-height: 800px;
+z-index: 6000;
+}
+
+#divPreloaderStatus {
+width: 200px;
+height: 200px;
+position: fixed;
+left: 50%;
+top: 50%;
+background-image: url(../img/ajax-loader.gif);
+background-repeat: no-repeat;
+background-position: center;
+margin: -100px 0 0 -100px;
+}

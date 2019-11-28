@@ -1,0 +1,35 @@
+package com.sample.demo.models.repository;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+
+import com.sample.demo.model.IndividualChatMessage;
+import com.sample.demo.model.UserManagement;
+
+/**
+ * A Repository for the UserManagement Enti import
+ * com.sample.demo.model.UserManagement;ty.
+ * 
+ * @author Ranjith
+ * @since 27-Aug-2018
+ * @version 1.0
+ */
+public interface UserRepository extends MongoRepository<UserManagement, String> {
+
+	Optional<UserManagement> findByUserNameIgnoreCase(String userName);
+
+	Optional<UserManagement> findByUkMessageKey(Long uniquKey);
+
+	Optional<UserManagement> findByMobile(String mobileNumber);
+
+	Optional<UserManagement> findOneByid(String id);
+	
+	
+	 @Query(value = "  { fullName: { $regex:?0 } }")
+	List<UserManagement> findUserByName(String name);
+
+
+}

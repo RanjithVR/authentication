@@ -1,0 +1,186 @@
+package com.sample.demo.model;
+
+import java.util.Objects;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+/**
+ * A UserManagement.
+ * 
+ * @author Ranjith
+ * @sincer 08-Aug-2018
+ * 
+ * @version 1.0
+ */
+@Document(collection = "UserManagement")
+public class UserManagement {
+
+	@Id
+	private String id;
+
+	@Field
+	private String pid;
+
+	@Field
+	private String fullName;
+
+	@Field
+	private String company;
+
+	@Field
+	private String userName;
+
+	@Field
+	private String password;
+
+	@Field
+	private String email;
+
+	@Field
+	private String mobile;
+
+	@Field
+	private boolean activated = false;
+
+	@Field
+	private Role role;
+
+	@Field
+	private boolean registerCompleted = false;
+
+	@Field
+	private Long ukMessageKey;
+
+	public UserManagement() {
+		super();
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getPid() {
+		return pid;
+	}
+
+	public void setPid(String pid) {
+		this.pid = pid;
+	}
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
+	}
+
+	public String getCompany() {
+		return company;
+	}
+
+	public void setCompany(String company) {
+		this.company = company;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+
+	public Role getRole() {
+		return role;
+	}
+
+	public void setRole(Role role) {
+		this.role = role;
+	}
+
+	public boolean isRegisterCompleted() {
+		return registerCompleted;
+	}
+
+	public void setRegisterCompleted(boolean registerCompleted) {
+		this.registerCompleted = registerCompleted;
+	}
+
+	public Long getUkMessageKey() {
+		return ukMessageKey;
+	}
+
+	public void setUkMessageKey(Long ukMessageKey) {
+		this.ukMessageKey = ukMessageKey;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		UserManagement user = (UserManagement) o;
+		if (user.id == null || id == null) {
+			return false;
+		}
+		return Objects.equals(id, user.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id);
+	}
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
+
+	@Override
+	public String toString() {
+		return "UserManagement [fullName=" + fullName + "]";
+	}
+
+}

@@ -1,0 +1,225 @@
+package com.sample.demo.web.rest.dto;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+import com.sample.demo.model.UserManagement;
+
+/**
+ * A DTO for the UserManagement entity.
+ * 
+ * @version 1.0
+ */
+public class UserDTO implements Serializable, Cloneable {
+
+	private static final long serialVersionUID = 1L;
+
+	private String id;
+	private String pid;
+	private String fullName;
+	private String company;
+	private String userName;
+	private String password;
+	private String email;
+	private String mobile;
+	private boolean activated = false;
+	private String role;
+	private LocalDate createdDate;
+	private LocalDateTime createdDateTime;
+	private String parentName;
+	private String parentPid;
+	private boolean registerCompleted = false;
+	private String theme;
+	private Long ukMessageKey;
+
+	public UserDTO() {
+		super();
+	}
+
+	public UserDTO(UserManagement user) {
+		super();
+		this.id = user.getId();
+		this.pid = user.getPid();
+		this.fullName = user.getFullName();
+		this.company = user.getCompany();
+		this.userName = user.getUserName();
+		this.password = user.getPassword();
+		this.email = user.getEmail();
+		this.mobile = user.getMobile();
+		this.activated = user.isActivated();
+		this.role = user.getRole() != null ? user.getRole().getRoleName() : "";
+		this.registerCompleted = user.isRegisterCompleted();
+		this.ukMessageKey = user.getUkMessageKey();
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getPid() {
+		return pid;
+	}
+
+	public void setPid(String pid) {
+		this.pid = pid;
+	}
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
+	}
+
+	public String getCompany() {
+		return company;
+	}
+
+	public void setCompany(String company) {
+		this.company = company;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public LocalDate getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(LocalDate createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getParentName() {
+		return parentName;
+	}
+
+	public void setParentName(String parentName) {
+		this.parentName = parentName;
+	}
+
+	public String getParentPid() {
+		return parentPid;
+	}
+
+	public void setParentPid(String parentPid) {
+		this.parentPid = parentPid;
+	}
+
+	public boolean isRegisterCompleted() {
+		return registerCompleted;
+	}
+
+	public void setRegisterCompleted(boolean registerCompleted) {
+		this.registerCompleted = registerCompleted;
+	}
+
+	public String getTheme() {
+		return theme;
+	}
+
+	public void setTheme(String theme) {
+		this.theme = theme;
+	}
+
+	public Long getUkMessageKey() {
+		return ukMessageKey;
+	}
+
+	public void setUkMessageKey(Long ukMessageKey) {
+		this.ukMessageKey = ukMessageKey;
+	}
+
+	public LocalDateTime getCreatedDateTime() {
+		return createdDateTime;
+	}
+
+	public void setCreatedDateTime(LocalDateTime createdDateTime) {
+		this.createdDateTime = createdDateTime;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		UserDTO user = (UserDTO) o;
+		if (user.id == null || id == null) {
+			return false;
+		}
+		return Objects.equals(id, user.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id);
+	}
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
+
+	@Override
+	public String toString() {
+		return "UserDTO [id=" + id + ", pid=" + pid + ", fullName=" + fullName + ", company=" + company + ", userName="
+				+ userName + ", password=" + password + ", email=" + email + ", mobile=" + mobile + ", activated="
+				+ activated + ", role=" + role + "]";
+	}
+
+}

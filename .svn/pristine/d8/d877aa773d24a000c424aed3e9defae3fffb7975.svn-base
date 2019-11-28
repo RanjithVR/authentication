@@ -1,0 +1,65 @@
+package com.sample.demo.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "GroupMembers")
+public class GroupMembers {
+	
+	@Id
+	private String id;
+	
+	@Field
+	private Group group;
+	
+	@Field
+	private UserManagement user;
+
+	public GroupMembers() {
+		super();
+	}
+
+	public GroupMembers(String id, Group group, UserManagement user) {
+		super();
+		this.id = id;
+		this.group = group;
+		this.user = user;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public Group getGroup() {
+		return group;
+	}
+
+	public void setGroup(Group group) {
+		this.group = group;
+	}
+
+	public UserManagement getUser() {
+		return user;
+	}
+
+	public void setUser(UserManagement user) {
+		this.user = user;
+	}
+
+	@Override
+	public String toString() {
+		return "GroupMembers [id=" + id + ", group=" + group + ", user=" + user
+				+ "]";
+	}
+	
+	
+	
+	
+	
+
+}

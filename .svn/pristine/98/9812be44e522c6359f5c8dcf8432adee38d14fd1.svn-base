@@ -1,0 +1,73 @@
+package com.sample.demo.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "Group")
+public class Group {
+
+	
+	@Id
+	private String id;
+	
+
+	@Field
+	private String groupName;
+	
+
+	@Field
+	private Long groupUniqeId;
+
+
+	public Group() {
+		super();
+	}
+
+
+	public Group(String id, String groupName, Long groupUniqeId) {
+		super();
+		this.id = id;
+		this.groupName = groupName;
+		this.groupUniqeId = groupUniqeId;
+	}
+
+
+	public String getId() {
+		return id;
+	}
+
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+
+	public Long getGroupUniqeId() {
+		return groupUniqeId;
+	}
+
+
+	public void setGroupUniqeId(Long groupUniqeId) {
+		this.groupUniqeId = groupUniqeId;
+	}
+
+
+	@Override
+	public String toString() {
+		return "Group [id=" + id + ", groupName=" + groupName
+				+ ", groupUniqeId=" + groupUniqeId + "]";
+	}
+	
+	
+}

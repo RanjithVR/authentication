@@ -1,0 +1,76 @@
+
+package com.sample.demo.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
+
+import com.sample.demo.service.SecurityService;
+
+/**
+ * the web security configuration.
+ * 
+ * @since 16-May-2018
+ * @version 1.0
+ */
+
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	private SecurityService securityService;
+
+	@Autowired
+	private CustomAuthenticationHandler customAuthenticationHandler;
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+
+		http.csrf().disable().headers()
+				.addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
+				.and().authorizeRequests().antMatchers("/", "/register/**", "/resources/**", "/api/**").permitAll()
+				.antMatchers("/company/**").fullyAuthenticated().and().formLogin().loginPage("/login")
+				.successHandler(customAuthenticationHandler).failureUrl("/login?error").permitAll().and().logout()
+				.logoutUrl("/logout").deleteCookies("remember-me").logoutSuccessUrl("/login?logout").permitAll().and()
+				.rememberMe();
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(securityService).passwordEncoder(passwordEncoder());
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		PasswordEncoder encoder = new BCryptPasswordEncoder();
+		return encoder;
+	}
+	
+	
+	  @Bean
+	    public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+	        DefaultHttpFirewall firewall = new DefaultHttpFirewall();
+	        firewall.setAllowUrlEncodedSlash(true);
+	        return firewall;
+	    }
+
+	    @Override
+	    public void configure(WebSecurity web) throws Exception {
+	        web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
+	    }
+	    
+	    
+}

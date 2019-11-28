@@ -1,0 +1,21 @@
+package com.sample.demo.non_model;
+
+public class Status {
+
+	private String message;
+
+	public Status() {
+		super();
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
+	
+	
+}

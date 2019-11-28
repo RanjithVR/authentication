@@ -1,0 +1,116 @@
+
+$(document).ready(function() {
+
+
+
+});
+
+function reg() {
+
+	var sucess = true;
+
+	var message = {};
+	if ($('#firstName').val() == "") {
+
+		setTimeout(function() {
+
+			$('#errorMessage').html(" First Name Required...!!!");
+			//return false;
+
+			sucess = false;
+		}, 3000);
+
+	} else {
+		message.firstName = $('#firstName').val();
+	}
+
+	if ($('#userName').val() == "") {
+
+		$('#errorMessage').html(" userName Required...!!!");
+		sucess = false;
+
+	} else {
+		message.userName = $('#userName').val();
+	}
+
+	if ($('#password').val() == "") {
+
+		$('#errorMessage').html(" password Required...!!!");
+		sucess = false;
+
+	} else {
+		message.password = $('#password').val();
+	}
+	
+	if ($('#password1').val() == "") {
+
+		$('#errorMessage').html(" password Required...!!!");
+		sucess = false;
+
+	} 
+	
+	  var password = $("#password").val();
+	  var confirmPassword = $("#password2").val();
+	
+	  if (password != confirmPassword ) {
+		  
+		  $('#errorMessage').html("password doesn't match...!!!");
+		  sucess = false;
+	      
+	       
+	       
+	    } else {
+	    	message.password = $('#password').val();
+	    }
+	
+
+	if (sucess) {
+		var messageContextPath = location.protocol + '//' + location.host
+				+ location.pathname;
+		$.ajax({
+			method : 'POST',
+			url : messageContextPath,
+			contentType : "application/json; charset=utf-8",
+			data : JSON.stringify(message),
+			success : function(data) {
+				console.log(data);
+				
+				//console.log(data["statusText"]);
+				
+				//console.log(data.status);
+				if(data.message=="found"){
+					$('#errorMessage').html("User already exists ..!!!");
+				}else{
+					$('#errorMessage').html("New user Registered..!!!");
+					
+				}
+				
+				
+				setTimeout(function() {
+
+					window.location.href = 'login';
+					$('#errorMessage').html("");
+
+				}, 1000);
+			
+				
+			},
+			error : function(xhr, error) {
+				console.log(xhr, error);
+			}
+
+		});
+
+		$('#errorMessage').html(" ");
+	}else{
+		setTimeout(function() {
+			$('#errorMessage').html("");
+		}, 1000);
+	}
+	
+	
+
+
+}
+	
+

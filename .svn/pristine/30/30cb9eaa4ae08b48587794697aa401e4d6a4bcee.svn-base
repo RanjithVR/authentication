@@ -1,0 +1,13 @@
+package com.sample.demo.models.repository;
+
+import java.util.List;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import com.sample.demo.model.GroupMessage;
+
+public interface GroupMessageRepository extends MongoRepository< GroupMessage, String> {
+
+
+	List<GroupMessage> findAllBygroupId(String grpId);
+}

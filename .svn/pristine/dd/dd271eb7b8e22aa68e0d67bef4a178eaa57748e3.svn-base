@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib uri="http://sargue.net/jsptags/time" prefix="javatime"%>
+<html lang="en">
+<head>
+<%-- <jsp:include page="../fragments/m_head.jsp"></jsp:include> --%>
+<title>ConVybe | Access Denied</title>
+</head>
+
+<body>
+	<section class="container-server-errors">
+		<div class="brand-logo-dark float-left ">
+			<a class="" href="#"> <Strong>ConVybe</Strong>
+			</a>
+		</div>
+		<div class="server-errors pages-card">
+			<div class="status-text-1">Oops!</div>
+			<div class="status-error text-theme hertbit">Sorry!!</div>
+			<div class="text-center status-text-2 text-dark">Access
+				Denied...!</div>
+			<div class="small text-center text-dark">
+				<h6>YOU SEEM TO BE TRYING TO ACCESS A PAGE, YOU DON'T HAVE
+					PERMISSION</h6>
+			</div>
+			<div class="text-center">
+				<a href="<spring:url value='/company/message'/>"
+					class="btn  btn-theme login-btn text-white"> Back to Message </a>
+			</div>
+			<div class="text-center">
+				<small>Do you think it is a system failure ? <a href="#"
+					class="text-theme">Contact Administrator</a>
+				</small>
+			</div>
+		</div>
+		<!-- end server-error pages -->
+	</section>
+	<!-- end secton container -->
+
+	<div class="half-circle"></div>
+	<div class="small-circle"></div>
+	<div class="half-circle-bottom"></div>
+	<div class="small-circle-bottom"></div>
+
+	<%-- <jsp:include page="../fragments/m_footer.jsp"></jsp:include>
+	<jsp:include page="../fragments/m_bottom_script.jsp"></jsp:include> --%>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+package com.sample.demo.models.repository;
+
+import java.util.List;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+
+import com.sample.demo.model.IndividualChatMessage;
+
+public interface IndividualChatMessageRepository extends MongoRepository<IndividualChatMessage, String> {
+
+	 @Query(value = "{$or: [ { 'receiverId' : ?0, 'senderId' : ?1 }, { 'receiverId' : ?1, 'senderId' : ?0 } ]}")
+	List<IndividualChatMessage> findAllByReceiverIdAndSenderId(String receiverId, String senderId);
+	
+	
+}

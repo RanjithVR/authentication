@@ -1,0 +1,174 @@
+package jp.profield.chat.model;
+
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "Attachemnt")
+public class Attachment {
+
+	@Id
+	private String id;
+	@Field
+	private String location;
+	@Field
+	private String attachmentName;
+	@Field
+	private String mimeType;
+	@Field
+	private LocalDateTime uploadedDate;
+	@Field
+	private String description;
+	@Field
+	private String extension;
+	@Field
+	private byte[] content;
+	@Field
+	private String base64Content;
+	@Field
+    private ExtensionType extensionType;
+	@Field
+	private boolean activated = true;
+	@Field
+	private String thumbfile;
+	
+	public enum ExtensionType{
+		png,jpeg,pdf,xls
+	}
+
+	public Attachment() {
+		super();
+		
+	}
+
+	
+
+	public Attachment(String id, String location, String attachmentName,
+			String mimeType, LocalDateTime uploadedDate, String description,
+			String extension, byte[] content, String base64Content,
+			ExtensionType extensionType, boolean activated, String thumbfile) {
+		super();
+		this.id = id;
+		this.location = location;
+		this.attachmentName = attachmentName;
+		this.mimeType = mimeType;
+		this.uploadedDate = uploadedDate;
+		this.description = description;
+		this.extension = extension;
+		this.content = content;
+		this.base64Content = base64Content;
+		this.extensionType = extensionType;
+		this.activated = activated;
+		this.thumbfile = thumbfile;
+	}
+
+
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public String getAttachmentName() {
+		return attachmentName;
+	}
+
+	public void setAttachmentName(String attachmentName) {
+		this.attachmentName = attachmentName;
+	}
+
+	public String getMimeType() {
+		return mimeType;
+	}
+
+	public void setMimeType(String mimeType) {
+		this.mimeType = mimeType;
+	}
+
+	public LocalDateTime getUploadedDate() {
+		return uploadedDate;
+	}
+
+	public void setUploadedDate(LocalDateTime uploadedDate) {
+		this.uploadedDate = uploadedDate;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getExtension() {
+		return extension;
+	}
+
+	public void setExtension(String extension) {
+		this.extension = extension;
+	}
+
+	public byte[] getContent() {
+		return content;
+	}
+
+	public void setContent(byte[] content) {
+		this.content = content;
+	}
+
+	public String getBase64Content() {
+		return base64Content;
+	}
+
+	public void setBase64Content(String base64Content) {
+		this.base64Content = base64Content;
+	}
+
+	public ExtensionType getExtensionType() {
+		return extensionType;
+	}
+
+	public void setExtensionType(ExtensionType extensionType) {
+		this.extensionType = extensionType;
+	}
+
+	public boolean isActivated() {
+		return activated;
+	}
+
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+
+
+
+	public String getThumbfile() {
+		return thumbfile;
+	}
+
+
+
+	public void setThumbfile(String thumbfile) {
+		this.thumbfile = thumbfile;
+	}
+	
+	
+	
+	
+	
+	  
+}

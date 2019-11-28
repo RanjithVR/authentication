@@ -1,0 +1,21 @@
+package com.sample.demo.service;
+
+import java.util.Optional;
+
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+import com.sample.demo.model.UserManagement;
+import com.sample.demo.web.rest.dto.UserDTO;
+
+/**
+ * Service Interface for managing Security.
+ * 
+ * @version 1.0
+ */
+public interface SecurityService extends UserDetailsService {
+
+	Optional<UserDTO> findByUserName(String userName);
+
+	void save(UserManagement user);
+
+}
